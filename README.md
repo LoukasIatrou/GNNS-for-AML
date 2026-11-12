@@ -91,3 +91,10 @@ A task is complete when the code or documentation is understandable, the relevan
 - [Pull-request checklist](.github/pull_request_template.md)
 - [GitHub Docs: collaborating with pull requests](https://docs.github.com/pull-requests/collaborating-with-pull-requests)
 - [GitHub Docs: protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository)
+
+
+## Shared evaluation for Roles 2 and 3
+
+Role 4's evaluator now accepts the existing `tests/elliptic_split.csv` file. It keeps the team's time split, excludes unknown labels from metrics and matches predictions by transaction ID.
+
+Start with the plain-language [Role 4 evaluation guide](docs/ROLE4_EVALUATION.md). It includes installation, an invented example, the prediction-file format and commands for real model outputs. Verification details are in [Role 4 validation](docs/ROLE4_VALIDATION.md).

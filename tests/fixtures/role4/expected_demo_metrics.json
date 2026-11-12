@@ -1,0 +1,16 @@
+{
+  "data_status": "SIMULATED: invented examples, not Elliptic findings",
+  "n": 8,
+  "n_illicit": 3,
+  "n_licit": 5,
+  "n_alerts": 3,
+  "tp": 2,
+  "fp": 1,
+  "fn": 1,
+  "tn": 4,
+  "precision_illicit": 0.6666666666666666,
+  "recall_illicit": 0.6666666666666666,
+  "f1_illicit": 0.6666666666666666,
+  "average_precision": 0.8055555555555556,
+  "accuracy": 0.75
+}

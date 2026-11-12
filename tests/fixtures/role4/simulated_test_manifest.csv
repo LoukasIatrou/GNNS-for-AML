@@ -1,0 +1,9 @@
+transaction_id,time_step,y_true
+T1,35,1
+T2,35,0
+T3,35,1
+T4,35,0
+T5,36,0
+T6,36,1
+T7,36,0
+T8,36,0
