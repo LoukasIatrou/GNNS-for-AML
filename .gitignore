@@ -37,3 +37,6 @@ models/
 # HPC job outputs
 hpc/r3out/
 hpc/*.log
+
+# Office lock files
+~$*
