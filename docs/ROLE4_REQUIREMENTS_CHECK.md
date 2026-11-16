@@ -33,7 +33,7 @@ The task names SHAP, GNNExplainer, particular metrics and software as examples. 
 | Preserve colleagues' work | Original shared files are unchanged. The main README only gains an evaluation section. |
 | Avoid adding real data and generated results | The changes archive excludes the existing dataset and generated outputs. New test inputs are explicitly invented. |
 | Record reproducibility and limits | Input and script fingerprints, package versions, threshold and seed are recorded. Actual model feature sets and checkpoints must be supplied by Roles 2 and 3. |
-| Branch, issue and pull request | Instructions are supplied in ROLE4_GITHUB_UPLOAD.md. Actual creation/linking cannot be verified from the ZIP. |
+| Branch, issue and pull request | Instructions are in CONTRIBUTING.md. Actual creation/linking cannot be verified from the ZIP. |
 | Review before merge | Required by CONTRIBUTING.md. No approval or merge is claimed. |
 | CI execution | Workflow is supplied and structurally checked. A hosted GitHub run is not verified. |
 

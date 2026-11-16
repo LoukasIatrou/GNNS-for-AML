@@ -1,104 +1,66 @@
-# GRAPH ML for Finding Money Laundering
+# Graph ML for Finding Money Laundering
 
-This repository contains the team project for detecting potential money-laundering patterns with graph machine learning. We model entities and transactions as a graph, build reproducible baselines, and evaluate models responsibly.
+Can graph machine learning flag illicit Bitcoin transactions? This student project (BSFS × BSML) uses the public [Elliptic dataset](https://www.kaggle.com/datasets/ellipticco/elliptic-data-set) (203,769 transactions, 234,355 payment flows, 49 time steps). It compares classical baselines with graph neural networks (GNNs) under a strict temporal split and a shared evaluation program.
 
-> **Project status:** setup phase. Replace the placeholders in [Project plan](#project-plan) before the first sprint.
+## Results
 
-## Goals
+Test set: time steps 35–49, 16,670 labelled transactions. The positive class is illicit.
 
-_To be defined by the project lead._
+| Model | Illicit F1 | AP (PR-AUC) | Details |
+|---|---|---|---|
+| Random Forest, raw features | **0.814 ± 0.002** | 0.783 | [Role 3](docs/ROLE3_GNN_RESULTS.md), 5 seeds |
+| Random Forest, final baseline | 0.750 | **0.786** | [Role 2](docs/ROLE2_BASELINE_RESULTS.md), Role 4 evaluator |
+| GCN | 0.558 ± 0.040 | 0.541 | Role 3 |
+| GraphSAGE | 0.555 ± 0.022 | 0.491 | Role 3 |
+| MLP (same network, no graph) | 0.507 ± 0.026 | 0.352 | Role 3 |
+| GAT | 0.484 ± 0.030 | 0.417 | Role 3 |
 
-## Repository map
+**Findings:**
+1. Tree ensembles on the 165 features are the strongest models, as in [Weber et al. (2019)](https://arxiv.org/abs/1908.02591).
+2. Message passing does help a neural network: GCN beats an identical MLP by about 5 F1 points. It still does not catch up with the trees.
+3. Every model fails after a large dark market shut down at time step 43. For example, the Role 2 RF reaches F1 0.87 on steps 35–42 and 0.02 on steps 43–49. Detecting this kind of change and retraining matter more than the choice of architecture.
+
+The full comparison, the shared rules and the open questions are in [docs/PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md).
+
+## How the project is organised
+
+| Role | Contribution | Main files |
+|---|---|---|
+| 1 – Data & exploration | Data card, shared temporal split (train 1–34 / test 35–49) | [`data/Final Data Card.html`](data/Final%20Data%20Card.html), [`tests/elliptic_split.csv`](tests/elliptic_split.csv) |
+| 2 – Baselines | Logistic regression, Random Forest, XGBoost | [`notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb`](notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb) |
+| 3 – Graph neural networks | MLP / GCN / GraphSAGE / GAT; RF with GCN embeddings | [`notebooks/role3_gnn_elliptic_final.ipynb`](notebooks/role3_gnn_elliptic_final.ipynb) |
+| 4 – Evaluation | Evaluator with overall and per-step metrics, tests, CI | [`src/role4_evaluation.py`](src/role4_evaluation.py), [guide](docs/ROLE4_EVALUATION.md) |
 
 ```text
-├── data/                 # Local data only; never commit raw or sensitive data
-│   ├── raw/              # Immutable source data
-│   ├── interim/          # Temporary transformed data
-│   └── processed/        # Model-ready data (commit only small, approved examples)
-├── docs/                 # Design notes, meeting notes, data dictionary
-├── notebooks/            # Exploratory work; promote reusable code into src/
-├── src/                  # Reusable project code
-├── tests/                # Automated checks for src/
-├── .github/              # GitHub templates and contribution workflow
-└── README.md
+├── data/        # Data card; raw data is downloaded, never committed
+├── docs/        # Results, pipeline overview, evaluation guide and validation
+├── notebooks/   # Role 2 and Role 3 experiments (Google Colab)
+├── src/         # Shared evaluator
+└── tests/       # Shared split file, evaluator tests and fixtures
 ```
 
-## Start here — zero-GitHub setup
+## Reproduce
 
-1. Create a free account at [github.com](https://github.com) and tell the project lead your GitHub username.
-2. Accept the invitation to this repository. In GitHub, click **Code**, then copy the HTTPS URL.
-3. Install [Git](https://git-scm.com/downloads) and [VS Code](https://code.visualstudio.com/). During Git installation, accept the default options.
-4. Open **PowerShell** (Windows) and run the following, replacing the URL and your details:
+1. **Notebooks.** Open them in Google Colab. Both download the dataset with `kagglehub`, which may ask for a Kaggle login.
+   - Role 3 needs a T4 GPU and takes about 10–15 minutes.
+   - Role 2 expects this repository at `MyDrive/ML-project-main` on Google Drive.
+2. **Evaluator** (Python 3.12):
 
-   ```powershell
-   git config --global user.name "Your Name"
-   git config --global user.email "your-email@example.com"
-   git clone https://github.com/ORG/REPOSITORY.git
-   cd REPOSITORY
-   code .
+   ```bash
+   python -m pip install -r requirements-evaluation.txt
+   python -m unittest discover -s tests -p 'test_role4*.py'
+   python -m src.role4_evaluation --split-file tests/elliptic_split.csv --predictions <scores.csv> --model <name> --seed 0 --threshold 0.50 --outdir outputs/<run>
    ```
 
-5. Read [CONTRIBUTING.md](CONTRIBUTING.md), then create a small first branch and pull request. If anything looks unfamiliar, ask in the team channel before continuing.
+   The prediction file format is described in [docs/ROLE4_EVALUATION.md](docs/ROLE4_EVALUATION.md).
 
-## Everyday workflow
+## Data and ethics
 
-Never work directly on `main`.
+- Raw data is downloaded from Kaggle and never committed. Elliptic's features are anonymised.
+- `tests/elliptic_split.csv` contains transaction IDs, time steps and labels from the Elliptic dataset. Labels for the test period were used for evaluation only.
+- A predicted label is a signal for human review. It is never an accusation or an automatic enforcement decision.
+- Results come from a batch, research setting. Using this in real time would need separate checks of which information is available at prediction time.
 
-```powershell
-# Update your local copy before starting work
-git switch main
-git pull origin main
+## Contributing and license
 
-# Create one branch for one focused task
-git switch -c feature/short-description
-
-# After editing files
-git status
-git add path/to/file
-git commit -m "Add short description"
-git push -u origin feature/short-description
-```
-
-Then open GitHub. It will offer **Compare & pull request**; use it, complete the checklist, request a reviewer, and merge only after approval.
-
-## Project plan
-
-The team should agree on these items in the first meeting and record the decision in `docs/`:
-
-| Topic | Decision to record |
-| --- | --- |
-| Graph schema | Nodes, edges, direction, timestamps, feature definitions |
-| Labels | Source, meaning, coverage, and leakage risks |
-| Baseline | Rule-based and/or classical ML baseline |
-| Evaluation | Temporal split, precision-recall AUC, recall at review capacity, calibration |
-| Privacy | Approved data source, access method, retention, and anonymisation |
-| Reproducibility | Python version, dependency file, random seeds, experiment log |
-
-## Data and ethics rules
-
-- Do **not** commit raw transaction data, credentials, personal data, customer identifiers, exports, or `.env` files.
-- Use synthetic, public, or explicitly approved data only. Keep a data dictionary and provenance record in `docs/`.
-- A predicted label is a triage signal, never an accusation or an automated enforcement decision.
-- Check for data leakage: future information, label-derived features, and random splits of time-dependent data can make results look falsely strong.
-
-## Definition of done
-
-A task is complete when the code or documentation is understandable, the relevant checks run successfully, results are recorded where applicable, and the pull request has an approval.
-
-## Helpful links
-
-- [Contributing guide](CONTRIBUTING.md)
-- [Pull-request checklist](.github/pull_request_template.md)
-- [GitHub Docs: collaborating with pull requests](https://docs.github.com/pull-requests/collaborating-with-pull-requests)
-- [GitHub Docs: protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository)
-
-
-## How the roles connect
-
-Role 1 (data card + split) → Roles 2 and 3 (baselines, GNNs) → Role 4 (shared evaluation). See [PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md) for the end-to-end flow, the combined results table and the remaining integration steps. Role 3 results: [ROLE3_GNN_RESULTS.md](docs/ROLE3_GNN_RESULTS.md).
-
-## Shared evaluation for Roles 2 and 3
-
-Role 4's evaluator now accepts the existing `tests/elliptic_split.csv` file. It keeps the team's time split, excludes unknown labels from metrics and matches predictions by transaction ID.
-
-Start with the plain-language [Role 4 evaluation guide](docs/ROLE4_EVALUATION.md). It includes installation, an invented example, the prediction-file format and commands for real model outputs. Verification details are in [Role 4 validation](docs/ROLE4_VALIDATION.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). The code and documentation are released under the [MIT License](LICENSE). The Elliptic dataset is covered by its own terms on Kaggle.

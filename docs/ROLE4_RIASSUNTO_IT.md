@@ -108,7 +108,6 @@ Perché accuracy non basta: sui 16.670 test etichettati, un ipotetico sistema ch
 | docs/ROLE4_VALIDATION.md | Verifiche, problemi corretti e misura locale dell’efficienza. |
 | docs/ROLE4_REQUIREMENTS_CHECK.md | Controllo dei requisiti e distinzione tra lavoro pronto e ancora da svolgere. |
 | docs/ROLE4_AML_CONTEXT.md | Introduzione AML, piano delle spiegazioni e traccia del report. |
-| docs/ROLE4_GITHUB_UPLOAD.md | Istruzioni per branch, caricamento e pull request. |
 
 ## 11 I quattro file prodotti da ogni esecuzione
 
