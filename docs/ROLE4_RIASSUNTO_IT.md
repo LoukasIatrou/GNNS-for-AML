@@ -4,7 +4,9 @@
 
 BSFS x BSML - Graph ML for Money Laundering
 
-**Abbiamo costruito un sistema comune per controllare le previsioni dei modelli del gruppo. Il programma e le istruzioni sono pronti per la revisione del team. Abbiamo verificato che il software funzioni; non abbiamo ancora risultati di modelli realmente addestrati.**
+> **Aggiornamento, 16 novembre 2026.** Ora ci sono risultati reali. Tutte le 30 esecuzioni dei modelli (Ruoli 2 e 3, 5 seed ciascuno) sono state valutate con questo programma sullo stesso insieme di test. Sono poi state combinate con `src/role4_compare.py`. Le spiegazioni SHAP e GNNExplainer sono in `notebooks/role4_explainability.ipynb`. Risultati e interpretazione AML (in inglese): [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md). Il testo qui sotto descrive la consegna iniziale.
+
+**Abbiamo costruito un sistema comune per controllare le previsioni dei modelli del gruppo. Il programma e le istruzioni sono pronti per la revisione del team. Abbiamo verificato che il software funzioni; al momento della consegna iniziale non avevamo ancora risultati di modelli realmente addestrati.**
 
 ## 1 La domanda del progetto
 

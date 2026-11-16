@@ -4,52 +4,58 @@ Can graph machine learning flag illicit Bitcoin transactions? This Bocconi Stude
 
 ## Results
 
-Test set: time steps 35–49, 16,670 labelled transactions. The positive class is illicit.
+Test set: time steps 35–49, 16,670 labelled transactions, positive class illicit. Every run was scored by the shared Role 4 evaluator on the same test set. Values are means over 5 seeds.
 
-| Model | Illicit F1 | AP | Details |
-|---|---|---|---|
-| Random Forest, raw features | **0.814 ± 0.002** | 0.783 | [Role 3](docs/ROLE3_GNN_RESULTS.md), 5 seeds |
-| Random Forest, final baseline | 0.750 | **0.786** | [Role 2](docs/ROLE2_BASELINE_RESULTS.md), Role 4 evaluator |
-| GCN | 0.558 ± 0.040 | 0.541 | Role 3 |
-| GraphSAGE | 0.555 ± 0.022 | 0.491 | Role 3 |
-| MLP (same network, no graph) | 0.507 ± 0.026 | 0.352 | Role 3 |
-| GAT | 0.484 ± 0.030 | 0.417 | Role 3 |
+| Model | AP | Illicit F1 | F1, steps 35–42 | F1, steps 43–49 |
+|---|---|---|---|---|
+| Random Forest (Role 2) | **0.788 ± 0.002** | 0.752 ± 0.005 | 0.874 | 0.020 |
+| Random Forest (Role 3) | 0.783 ± 0.002 | **0.817 ± 0.002** | **0.906** | 0.031 |
+| GCN | 0.532 ± 0.057 | 0.547 ± 0.029 | 0.630 | 0.013 |
+| GraphSAGE | 0.471 ± 0.034 | 0.534 ± 0.016 | 0.615 | 0.017 |
+| GAT | 0.446 ± 0.075 | 0.477 ± 0.045 | 0.545 | 0.022 |
+| MLP (same network, no graph) | 0.330 ± 0.042 | 0.503 ± 0.032 | 0.586 | 0.020 |
 
-**Findings:**
-1. Tree ensembles on the 165 features are the strongest models, as in [Weber et al. (2019)](https://arxiv.org/abs/1908.02591).
-2. Message passing does help a neural network: GCN beats an identical MLP by about 5 F1 points. It still does not catch up with the trees.
-3. Every model fails after a large dark market shut down at time step 43. For example, the Role 2 RF reaches F1 0.87 on steps 35–42 and 0.02 on steps 43–49. Detecting this kind of change and retraining matter more than the choice of architecture.
-
-The full comparison, the shared rules and the open questions are in [docs/PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md).
+**Findings** (details in [docs/RESULTS_AND_INTERPRETATION.md](docs/RESULTS_AND_INTERPRETATION.md)):
+1. Tree ensembles on the 165 transaction features are the strongest models, as in [Weber et al. (2019)](https://arxiv.org/abs/1908.02591).
+2. Training on the graph helps a neural network: GCN reaches AP 0.53 vs 0.33 for an identical MLP. The trained GNN, however, does not need the edges at prediction time: removing them from the test graph does not lower its AP.
+3. Every model fails after a large dark market shut down at time step 43. SHAP shows that the features that flagged illicit activity before the shutdown point towards licit afterwards. This is concept drift, so monitoring and retraining matter more than the choice of architecture.
+4. The two Random Forests catch the same share of illicit transactions, but at threshold 0.50 one raises 230 false alarms per run and the other 50. Calibration and threshold choice decide how much work investigators get.
 
 ## How the project is organised
 
 | Role | Contribution | Main files |
 |---|---|---|
-| 1 – Data & exploration | Data card, shared temporal split (train 1–34 / test 35–49) | [`data/Final Data Card.html`](data/Final%20Data%20Card.html), [`tests/elliptic_split.csv`](tests/elliptic_split.csv) |
-| 2 – Baselines | Logistic regression, Random Forest, XGBoost | [`notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb`](notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb) |
-| 3 – Graph neural networks | MLP / GCN / GraphSAGE / GAT; RF with GCN embeddings | [`notebooks/role3_gnn_elliptic_final.ipynb`](notebooks/role3_gnn_elliptic_final.ipynb) |
-| 4 – Evaluation | Evaluator with overall and per-step metrics, tests, CI | [`src/role4_evaluation.py`](src/role4_evaluation.py), [guide](docs/ROLE4_EVALUATION.md) |
+| 1 – Data & exploration | Data card, shared temporal split (train 1–34 / test 35–49), script that rebuilds the split | [`data/Final Data Card.html`](data/Final%20Data%20Card.html), [`tests/elliptic_split.csv`](tests/elliptic_split.csv), [`src/role1_split.py`](src/role1_split.py) |
+| 2 – Baselines | Logistic regression, Random Forest, XGBoost | [`notebooks/role2_baseline_models.ipynb`](notebooks/role2_baseline_models.ipynb), [results](docs/ROLE2_BASELINE_RESULTS.md) |
+| 3 – Graph neural networks | MLP / GCN / GraphSAGE / GAT; RF with GCN embeddings | [`notebooks/role3_gnn_elliptic.ipynb`](notebooks/role3_gnn_elliptic.ipynb), [`hpc/`](hpc), [results](docs/ROLE3_GNN_RESULTS.md) |
+| 4 – Evaluation & explainability | Evaluator, comparison across runs, SHAP / GNNExplainer, AML interpretation, tests, CI | [`src/role4_evaluation.py`](src/role4_evaluation.py), [`src/role4_compare.py`](src/role4_compare.py), [`notebooks/role4_explainability.ipynb`](notebooks/role4_explainability.ipynb), [results](docs/RESULTS_AND_INTERPRETATION.md) |
+
+How the roles feed into each other: [docs/PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md).
 
 ```text
 ├── data/        # Data card; raw data is downloaded, never committed
-├── docs/        # Results, pipeline overview, evaluation guide and validation
-├── notebooks/   # Role 2 and Role 3 experiments (Google Colab)
-├── src/         # Shared evaluator
-└── tests/       # Shared split file, evaluator tests and fixtures
+├── docs/        # Results, interpretation, pipeline overview, evaluation guide
+├── hpc/         # SLURM scripts for the Role 3 re-run on the Bocconi HPC
+├── notebooks/   # Role 2, Role 3 and Role 4 notebooks (Colab or local)
+├── results/     # Final comparison tables (all 30 runs)
+├── src/         # Split builder, evaluator, comparison tool
+└── tests/       # Shared split file, tests and fixtures
 ```
 
 ## Reproduce
 
-1. **Notebooks.** Open them in Google Colab. Both download the dataset with `kagglehub`, which may ask for a Kaggle login.
-   - Role 3 needs a T4 GPU and takes about 10–15 minutes.
-   - Role 2 expects this repository at `MyDrive/ML-project-main` on Google Drive.
-2. **Evaluator** (Python 3.12):
+1. **Split** (optional; the committed file is byte-identical): `python -m src.role1_split --data-dir <elliptic folder> --out tests/elliptic_split.csv`
+2. **Notebooks.** Run them in Google Colab or locally. They download the dataset with `kagglehub`, which may ask for a Kaggle login.
+   - Role 2 runs on CPU in a few minutes. In Colab it expects this repository at `MyDrive/ML-project-main`.
+   - Role 3 needs a GPU: about 10–15 minutes on a Colab T4, or about 3 minutes with [`hpc/job_r3.sh`](hpc/job_r3.sh) on the Bocconi HPC.
+   - The Role 4 explainability notebook runs on CPU in about 10 minutes.
+3. **Evaluate and compare** (Python 3.12):
 
    ```bash
    python -m pip install -r requirements-evaluation.txt
-   python -m unittest discover -s tests -p 'test_role4*.py'
+   python -m unittest discover -s tests -p 'test_role*.py'
    python -m src.role4_evaluation --split-file tests/elliptic_split.csv --predictions <scores.csv> --model <name> --seed 0 --threshold 0.50 --outdir outputs/<run>
+   python -m src.role4_compare outputs/<run> outputs/<other run> ... --outdir outputs/comparison
    ```
 
    The prediction file format is described in [docs/ROLE4_EVALUATION.md](docs/ROLE4_EVALUATION.md).

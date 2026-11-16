@@ -3,60 +3,56 @@
 One dataset, one split, one scoring program. Each role builds on what the previous role produced.
 
 ```text
-Role 1  Data & exploration          ->  data card + tests/elliptic_split.csv (train 1-34 / test 35-49)
-           |
+Role 1  Data & exploration   ->  data card + tests/elliptic_split.csv (train 1-34 / test 35-49)
+           |                     rebuilt by src/role1_split.py
            +--> Role 2  Baselines (no message passing)   --+
            |                                               +-->  per-transaction scores (txId, score_illicit)
-           +--> Role 3  Graph neural networks            --+
+           +--> Role 3  Graph neural networks            --+     one file per model and seed
                                                            |
-Role 4  Evaluation  <--------------------------------------+  src/role4_evaluation.py: same IDs, metrics, per-step results
+Role 4  Evaluation  <--------------------------------------+  src/role4_evaluation.py  (one run)
+                                                              src/role4_compare.py     (all runs, same test set)
+                                                              notebooks/role4_explainability.ipynb
 ```
 
 | Role | Produces | Where | Status |
 |---|---|---|---|
-| 1 – Data | Data card, shared split file (`txId, time_step, class, split`) | [`data/Final Data Card.html`](../data/Final%20Data%20Card.html), [`tests/elliptic_split.csv`](../tests/elliptic_split.csv) | Done, on `main` |
-| 2 – Baselines | Logistic regression, Random Forest and XGBoost; RF + graph degree; final RF scores | [`notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb`](../notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb), [results](ROLE2_BASELINE_RESULTS.md) | Done; evaluated with the Role 4 evaluator |
-| 3 – GNNs | MLP, GCN, GraphSAGE and GAT over 5 seeds; RF with and without GCN embeddings | [`notebooks/role3_gnn_elliptic_final.ipynb`](../notebooks/role3_gnn_elliptic_final.ipynb), [results](ROLE3_GNN_RESULTS.md) | Done; results are in the notebook. **Not yet run through the Role 4 evaluator** |
-| 4 – Evaluation | Evaluator, tests, CI, AML context | [`src/role4_evaluation.py`](../src/role4_evaluation.py), [guide](ROLE4_EVALUATION.md) | Done, on `main` |
+| 1 – Data | Data card, shared split file (`txId, time_step, class, split`), script that rebuilds the split | [`data/Final Data Card.html`](../data/Final%20Data%20Card.html), [`tests/elliptic_split.csv`](../tests/elliptic_split.csv), [`src/role1_split.py`](../src/role1_split.py) | Done. The rebuilt file is byte-identical to the committed one |
+| 2 – Baselines | Logistic regression, Random Forest and XGBoost; RF + graph degree; final RF over 5 seeds | [`notebooks/role2_baseline_models.ipynb`](../notebooks/role2_baseline_models.ipynb), [results](ROLE2_BASELINE_RESULTS.md) | Done; evaluated with Role 4 |
+| 3 – GNNs | MLP, GCN, GraphSAGE and GAT; RF with and without GCN embeddings; 5 seeds | [`notebooks/role3_gnn_elliptic.ipynb`](../notebooks/role3_gnn_elliptic.ipynb), [`hpc/`](../hpc), [results](ROLE3_GNN_RESULTS.md) | Done; re-run on the Bocconi HPC and evaluated with Role 4 |
+| 4 – Evaluation | Evaluator, comparison tool, explanations, AML interpretation | [`src/`](../src), [`notebooks/role4_explainability.ipynb`](../notebooks/role4_explainability.ipynb), [results and interpretation](RESULTS_AND_INTERPRETATION.md) | Done, except the final report and slides |
 
 ## The common thread
 
 | Decision | Role 1 sets | Role 2 follows | Role 3 follows | Role 4 enforces |
 |---|---|---|---|---|
 | Time split | 1–34 / 35–49 | Reads the split file | Rebuilds the same split from `time_step`; the counts match | Builds the test set from the split file |
-| Validation | – | 1–29 / 30–34, then retrains on 1–34 | 1–29 / 30–34 for the GNNs; the RF trains on 1–34 | Recommends this; still an open team decision |
+| Validation | – | 1–29 / 30–34, then retrains on 1–34 | 1–29 / 30–34 for the GNNs; the RF trains on 1–34 | Records each model's training window |
 | Unknown labels | 77% unlabelled; keep them in the graph, never score them | Dropped | Used for message passing only | Removed from the metrics |
-| Test set | 16,670 labelled test transactions | 16,670 scores, checked with an assert | 16,670 labelled test nodes | Rejects missing or extra IDs |
-| Main metrics | Not accuracy; use illicit F1 / PR-AUC | P, R, F1, AP | P, R, F1, AP (labelled "PR-AUC") | P, R, F1, AP plus confusion counts, overall and per step |
-| Threshold | – | 0.50 | GNNs: tuned on validation and frozen; RF: 0.50 | `score >= threshold`, the value given on the command line |
-| Drift at step 43 | Pointed out in the data card | – | Confirmed: every model drops to F1 ≈ 0 | Per-step output makes this visible |
+| Test set | 16,670 labelled test transactions | 16,670 scores per seed | 16,670 scores per model and seed | All 30 runs share `manifest_sha256` `1116ca4b…1449` |
+| Metrics | Not accuracy; use illicit F1 / AP | P, R, F1, AP | P, R, F1, AP | P, R, F1, AP plus confusion counts, overall and per step, and F1 before and after step 43 |
+| Threshold | – | 0.50 | GNNs: tuned on validation and frozen; RF: 0.50 | Fixed before seeing test labels; AP is the headline because it needs no threshold |
+| Seeds | – | 0–4 | 0–4 | Mean ± std over seeds |
+| Drift at step 43 | Pointed out in the data card | Confirmed (F1 0.87 → 0.02) | Confirmed for every model | Explained with SHAP |
 
-## Results so far (test set, steps 35–49, illicit class)
+## Results
 
-| Model | Role | Illicit F1 | PR-AUC / AP | Source |
-|---|---|---|---|---|
-| Random Forest, raw features | 3 | **0.814 ± 0.002** | 0.783 | Role 3 notebook, 5 seeds |
-| Random Forest (final baseline) | 2 | 0.750 | **0.786** | Role 4 evaluator, seed 0 |
-| Random Forest + GCN embeddings | 3 | 0.758 ± 0.015 | 0.740 | Role 3 notebook |
-| GCN | 3 | 0.558 ± 0.040 | 0.541 | Role 3 notebook |
-| GraphSAGE | 3 | 0.555 ± 0.022 | 0.491 | Role 3 notebook |
-| MLP (no graph) | 3 | 0.507 ± 0.026 | 0.352 | Role 3 notebook |
-| GAT | 3 | 0.484 ± 0.030 | 0.417 | Role 3 notebook |
-| Weber et al. (2019): RF / GCN / EvolveGCN | paper | 0.788 / 0.628 / 0.720 | – | arXiv:1908.02591 |
+Full table and interpretation: [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md). Headline (test set, mean of 5 seeds):
 
-**What the evidence shows so far:**
-- Tree models on the 165 features are the strongest models. Both Random Forests reach AP ≈ 0.78–0.79.
-- Message passing helps a neural network: GCN beats the MLP by about 5 F1 points and 0.19 PR-AUC. It still does not catch up with the trees.
-- Every model fails after the dark-market shutdown at step 43, as the data card warned. Detecting drift and retraining matter more than the choice of architecture.
+| Model | AP | Illicit F1 |
+|---|---|---|
+| Random Forest (Role 2) | **0.788** | 0.752 |
+| Random Forest (Role 3) | 0.783 | **0.817** |
+| GCN | 0.532 | 0.547 |
+| GraphSAGE | 0.471 | 0.534 |
+| GAT | 0.446 | 0.477 |
+| MLP (no graph) | 0.330 | 0.503 |
 
-## What is still needed to compare everything with the Role 4 evaluator
+## Still open
 
-1. **Role 3:** export per-node scores with the snippet in [ROLE3_GNN_RESULTS.md](ROLE3_GNN_RESULTS.md#exported-files-and-role-4-evaluation), then run the evaluator for each model and seed.
-2. **Compare `manifest_sha256`** across all runs to confirm they were scored on the same test set. The Role 2 run has `1116ca4b…1449`.
-3. **Agree on the threshold policy.** Either every model uses 0.50, or every model uses a threshold tuned on validation. AP does not depend on the threshold and is the fairest headline comparison until this is decided.
-4. **Agree on the training window.** The Role 3 GNNs train on 1–29, while both RFs train on 1–34. Either retrain the GNNs on 1–34 or report the difference.
-5. Note that the Role 2 RF and the Role 3 RF use different settings:
-   - Role 2: depth 12, balanced class weights.
-   - Role 3: `max_features=50`, no class weights, standardised inputs.
-   They are two baselines, not the same model run twice. Their AP is almost the same (0.786 vs 0.783), but F1 at threshold 0.50 differs (0.750 vs 0.814). The models rank transactions about equally well, but their scores are calibrated differently.
-6. **Role 4 write-up:** report steps 35–42 and 43–49 separately, using the per-step output. For the Role 2 RF this gives F1 0.871 and 0.020.
+1. **Final report and slides** in the BSFS format, built from RESULTS_AND_INTERPRETATION.md.
+2. **Optional experiments** suggested by the results:
+   - GNNs retrained on 1–34.
+   - Local features only.
+   - Skip-GCN or EvolveGCN.
+   - Out-of-fold GNN embeddings for the RF.
+3. **Dataset terms.** Confirm that Elliptic's terms allow republishing `tests/elliptic_split.csv`. If they don't, delete it and let users rebuild it with `src/role1_split.py`.
