@@ -93,6 +93,10 @@ A task is complete when the code or documentation is understandable, the relevan
 - [GitHub Docs: protected branches](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository)
 
 
+## How the roles connect
+
+Role 1 (data card + split) → Roles 2 and 3 (baselines, GNNs) → Role 4 (shared evaluation). See [PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md) for the end-to-end flow, the combined results table and the remaining integration steps. Role 3 results: [ROLE3_GNN_RESULTS.md](docs/ROLE3_GNN_RESULTS.md).
+
 ## Shared evaluation for Roles 2 and 3
 
 Role 4's evaluator now accepts the existing `tests/elliptic_split.csv` file. It keeps the team's time split, excludes unknown labels from metrics and matches predictions by transaction ID.
