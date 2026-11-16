@@ -129,7 +129,7 @@ Compare `manifest_sha256` between exported runs to check that transaction IDs, p
 
 ## 6 Decisions to agree before training
 
-The train/test boundary is already implemented by Role 1: periods 1-34 versus 35-49. The following remain proposals:
+The train/test boundary is already implemented by Role 1: periods 1-34 versus 35-49. These were the proposals before training. What the team actually did, including the threshold policy used for the final comparison, is recorded in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md#1-what-was-compared):
 
 - Train on 1-29 and validate on 30-34 during development. Agree whether to retrain on all of 1-34 after choosing settings.
 - Use a headline alert threshold of 0.50. If selecting another threshold, choose it on validation data and freeze it before test evaluation.
@@ -147,6 +147,8 @@ python -m unittest discover -s tests -p "test_role4*.py" -v
 ```
 
 These checks use invented examples. The reviewed version passes 51 test methods, including an independent comparison against scikit-learn across 60 combinations of sample size, class balance, tied scores and thresholds. Tests also cover the native split adapter, ID alignment, malformed CSVs, input errors, undefined metrics, file-change detection and failed-export cleanup. The added GitHub workflow runs these checks and the simulated example on Python 3.12. Its first hosted run remains pending until the branch is uploaded.
+
+To combine several runs, use `python -m src.role4_compare <run folders> --outdir <new folder>`. It refuses runs scored on different test sets and writes the mean ± std per model, plus F1 before and after the step-43 shift.
 
 Local integration with the supplied real split file is documented in [ROLE4_VALIDATION.md](ROLE4_VALIDATION.md). Actual model comparison and explanation still require trained models and their predictions. The [assignment requirements check](ROLE4_REQUIREMENTS_CHECK.md) separates completed preparation from pending final work. The [AML background and analysis plan](ROLE4_AML_CONTEXT.md) provides initial context and the planned report structure.
 

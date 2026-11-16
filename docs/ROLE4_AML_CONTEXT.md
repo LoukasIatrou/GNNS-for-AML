@@ -1,6 +1,6 @@
 # AML background and final analysis plan
 
-This is initial background and a plan for the later Role 4 analysis. It contains no findings about trained models.
+This is the initial background and analysis plan. The findings from the trained models, which follow this plan, are in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md).
 
 ## Why this project matters
 

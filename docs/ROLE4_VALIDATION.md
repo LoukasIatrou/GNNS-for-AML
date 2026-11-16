@@ -61,8 +61,8 @@ The archive is checked for integrity and applied to a fresh copy of the supplied
 
 - Upload the branch and obtain teammate review according to CONTRIBUTING.md.
 - Run the added workflow on GitHub; this environment has not performed a hosted CI run.
-- Agree validation periods, threshold policy, graph access and repeated-run settings.
-- Obtain actual model predictions, compare results and explain selected decisions.
+- ~~Agree validation periods, threshold policy, graph access and repeated-run settings.~~ Settled in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md).
+- ~~Obtain actual model predictions, compare results and explain selected decisions.~~ Done (16 November 2026): 30 real runs share one test set, `manifest_sha256` `1116ca4b…1449`.
 
 Core library versions are pinned. Supporting dependencies are resolved by pip. Downloading dependencies into a completely empty environment was not verified here. Software checks do not establish real-world AML usefulness.
 

@@ -16,7 +16,17 @@ This guide is for every contributor, including people new to GitHub. Ask early w
 
 - Find or create a GitHub Issue for the task. State what “done” means.
 - Tell the team which issue you are working on to avoid duplicate work.
-- Update `main`, then create your branch as shown in the README.
+- Update `main`, then create your branch:
+
+```bash
+git switch main
+git pull origin main
+git switch -c feature/short-description
+# edit, then
+git add path/to/file
+git commit -m "Add short description"
+git push -u origin feature/short-description
+```
 
 ## Make a pull request
 

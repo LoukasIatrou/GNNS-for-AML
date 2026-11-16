@@ -1,0 +1,11 @@
+quantity,"illicit, steps 35-42","illicit, steps 43-49"
+mean score,0.806,0.096
+share flagged (score >= 0.5),0.864,0.018
+SHAP feature_55,0.039,-0.044
+SHAP feature_53,0.024,-0.039
+SHAP feature_47,0.024,-0.023
+SHAP feature_41,0.025,-0.014
+SHAP feature_49,0.019,-0.015
+SHAP feature_90,0.018,-0.007
+SHAP feature_76,0.011,-0.012
+SHAP feature_14,0.015,-0.007
