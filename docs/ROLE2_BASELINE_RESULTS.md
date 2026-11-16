@@ -1,9 +1,9 @@
 # Role 2 – Baseline model results
 
-Notebook: [`notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb`](../notebooks/Role2_Baseline_Models_FINAL_CORRECTED.ipynb). It is written for Google Colab with the repository copied to Google Drive.
-How this fits with the other roles: [PROJECT_PIPELINE.md](PROJECT_PIPELINE.md).
+Notebook: [`notebooks/role2_baseline_models.ipynb`](../notebooks/role2_baseline_models.ipynb). It runs in Google Colab, with the repository copied to Drive as `MyDrive/ML-project-main`, or locally from a clone.
+How this fits with the other roles: [PROJECT_PIPELINE.md](PROJECT_PIPELINE.md). The combined comparison is in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md).
 
-The shared copy of the notebook has its outputs cleared. The numbers below come from running every code cell top to bottom on 2026-11-16. The run was local rather than in Colab: the Drive paths were pointed at a local clone and nothing else in the code changed. Libraries: Python 3.11, scikit-learn 1.8.0, XGBoost 3.2.0, pandas 2.2.3, NumPy 2.3.5. The test metrics come from the **Role 4 evaluator**.
+The saved outputs in the notebook come from running it top to bottom locally on 2026-11-16. Libraries: Python 3.11, scikit-learn 1.8.0, XGBoost 3.2.0, pandas 2.2.3, NumPy 2.3.5. The test metrics come from the **Role 4 evaluator**.
 
 ## Setup
 
@@ -12,10 +12,10 @@ The shared copy of the notebook has its outputs cleared. The numbers below come 
 | Split | Read from [`tests/elliptic_split.csv`](../tests/elliptic_split.csv). Model selection: train on 1–29 (26,381 labelled) and validate on 30–34 (3,513). The final model is retrained on 1–34 (29,894 labelled) |
 | Features | The 165 original features. One experiment adds the node's degree within its own time step |
 | Models | Logistic regression (balanced class weights, standardised) · Random Forest (100 trees, depth 12, balanced class weights) · XGBoost (150 trees, depth 5, learning rate 0.1) |
-| Threshold | Fixed at 0.50 |
-| Seed | 0 |
+| Threshold | Fixed at 0.50, the same for every model and seed |
+| Seeds | Model selection: seed 0. Final Random Forest: seeds 0–4, the same seeds as Role 3 |
 
-## Validation (time steps 30–34)
+## Validation (time steps 30–34, seed 0)
 
 | Model | Precision | Recall | F1 | AP |
 |---|---|---|---|---|
@@ -26,25 +26,29 @@ The shared copy of the notebook has its outputs cleared. The numbers below come 
 
 The Random Forest is selected. Adding the degree feature does not help, because the 72 aggregated features already describe each transaction's neighbourhood. Validation scores are much higher than test scores because validation falls before the step-43 shift and has a high share of illicit transactions (16.8%).
 
-## Test (time steps 35–49), Role 4 evaluator
+## Test (time steps 35–49), Role 4 evaluator, 5 seeds
 
-| Model | Precision | Recall | F1 | AP | TP | FP | FN | TN |
-|---|---|---|---|---|---|---|---|---|
-| Random Forest (final, retrained on 1–34) | 0.769 | 0.732 | **0.750** | **0.786** | 793 | 238 | 290 | 15,349 |
+| Seed | Precision | Recall | F1 | AP | TP | FP | FN |
+|---|---|---|---|---|---|---|---|
+| 0 | 0.769 | 0.732 | 0.750 | 0.786 | 793 | 238 | 290 |
+| 1 | 0.773 | 0.728 | 0.750 | 0.785 | 788 | 231 | 295 |
+| 2 | 0.796 | 0.728 | 0.760 | 0.788 | 788 | 202 | 295 |
+| 3 | 0.768 | 0.727 | 0.747 | 0.788 | 787 | 238 | 296 |
+| 4 | 0.769 | 0.736 | 0.752 | 0.791 | 797 | 239 | 286 |
+| **Mean ± std** | 0.775 ± 0.012 | 0.730 ± 0.004 | **0.752 ± 0.005** | **0.788 ± 0.002** | | | |
 
-The evaluator scored all 16,670 labelled test transactions (1,083 illicit). `manifest_sha256` = `1116ca4b51a72ecf72bdc7577d8f305f7f65e52ab6610b5d5dfc458f51771449`. Other runs must report this same value to show they used the same test set.
+Every run was scored on the same 16,670 labelled test transactions (1,083 illicit). `manifest_sha256` = `1116ca4b51a72ecf72bdc7577d8f305f7f65e52ab6610b5d5dfc458f51771449`, the same value as every Role 3 run.
 
-### By time step
+### Before and after the dark-market shutdown
 
-| Time steps | TP | FP | FN | F1 (pooled) |
-|---|---|---|---|---|
-| 35–42 | 790 | 110 | 124 | **0.871** |
-| 43–49 (after the dark-market shutdown) | 3 | 128 | 166 | **0.020** |
+| Time steps | F1 (pooled, mean of 5 seeds) |
+|---|---|
+| 35–42 | **0.874 ± 0.005** |
+| 43–49 | **0.020 ± 0.001** |
 
-F1 is 0.72–0.95 at every step from 35 to 42. From step 43 onwards the model misses almost every illicit transaction. This is the same collapse that Role 3 found and that the Role 1 data card warned about.
+Before step 43 the model works well. After it, the model misses almost every illicit transaction. The SHAP analysis in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md#4-why-the-models-fail-after-step-43) shows why: the features that flagged illicit activity before the shutdown point the other way afterwards.
 
 ## Notes
 
-- This is a single seed. The Role 3 RF results suggest that variation across seeds is small (±0.002 F1).
-- Role 3 also trains a Random Forest, with different settings, and gets F1 0.814 ± 0.002 and AP 0.783. The two Random Forests reach almost the same AP but clearly different F1 at threshold 0.50. That points to calibration: balanced class weights in Role 2 vs none in Role 3. Ranking quality is about the same.
+- Role 3 also trains a Random Forest, with different settings (`max_features=50`, no class weights, standardised inputs), and gets AP 0.783 and F1 0.817. The two Random Forests rank transactions about equally well (AP 0.788 vs 0.783). At threshold 0.50, though, the Role 2 model raises 4–5 times as many false alarms (≈230 vs ≈50) for the same recall. The balanced class weights push its scores upwards.
 - The degree feature assumes the whole graph of each time step is available at prediction time. This is a batch setting.
