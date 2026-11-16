@@ -1,12 +1,12 @@
 # Graph ML for Finding Money Laundering
 
-Can graph machine learning flag illicit Bitcoin transactions? This student project (BSFS × BSML) uses the public [Elliptic dataset](https://www.kaggle.com/datasets/ellipticco/elliptic-data-set) (203,769 transactions, 234,355 payment flows, 49 time steps). It compares classical baselines with graph neural networks (GNNs) under a strict temporal split and a shared evaluation program.
+Can graph machine learning flag illicit Bitcoin transactions? This Bocconi Students Machine Learning (BSML) project uses the public [Elliptic dataset](https://www.kaggle.com/datasets/ellipticco/elliptic-data-set) (203,769 transactions, 234,355 payment flows, 49 time steps). It compares classical baselines with graph neural networks (GNNs) under a strict temporal split and a shared evaluation program.
 
 ## Results
 
 Test set: time steps 35–49, 16,670 labelled transactions. The positive class is illicit.
 
-| Model | Illicit F1 | AP (PR-AUC) | Details |
+| Model | Illicit F1 | AP | Details |
 |---|---|---|---|
 | Random Forest, raw features | **0.814 ± 0.002** | 0.783 | [Role 3](docs/ROLE3_GNN_RESULTS.md), 5 seeds |
 | Random Forest, final baseline | 0.750 | **0.786** | [Role 2](docs/ROLE2_BASELINE_RESULTS.md), Role 4 evaluator |
@@ -60,6 +60,16 @@ The full comparison, the shared rules and the open questions are in [docs/PROJEC
 - `tests/elliptic_split.csv` contains transaction IDs, time steps and labels from the Elliptic dataset. Labels for the test period were used for evaluation only.
 - A predicted label is a signal for human review. It is never an accusation or an automatic enforcement decision.
 - Results come from a batch, research setting. Using this in real time would need separate checks of which information is available at prediction time.
+
+## Team
+
+| Member | GitHub | Role and contribution |
+|---|---|---|
+| Loukas Iatrou | [@LoukasIatrou](https://github.com/LoukasIatrou) | **Project lead.** Started the project, defined its objectives and the team roles, and set up the repository, collaboration rules and pull-request workflow. Coordinates the team, contributes to the baselines and GNNs, and wrote the integration and results documentation. |
+| Ahaan Dhawan | [@ahaandhawan](https://github.com/ahaandhawan) | **Role 1 – Data preparation and exploration.** Preprocessed the dataset, did the exploratory analysis, built the chronological train/test split and wrote the data card. |
+| Jessica Zainea Pop | [@zaineajessica-commits](https://github.com/zaineajessica-commits) | **Role 2 – Baseline models.** Built the classical machine-learning baselines (logistic regression, Random Forest, XGBoost), following Weber et al. (2019). |
+| Gioia Cancian | [@Joey3383](https://github.com/Joey3383) | **Role 3 – Graph neural networks.** Built and trained the GNN architectures (GCN, GraphSAGE, GAT) to test whether graph structure improves illicit-transaction detection. |
+| Giulio D'Aversa | [@mistergda06](https://github.com/mistergda06) | **Role 4 – Evaluation, explainability and AML context.** Built the shared evaluator, metrics, automated tests and CI, and wrote the AML background and explanation plan. |
 
 ## Contributing and license
 
