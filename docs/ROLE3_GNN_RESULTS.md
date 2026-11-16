@@ -1,6 +1,6 @@
 # Role 3 – Graph neural network results
 
-Notebook: [`notebooks/role3_gnn_elliptic_final.ipynb`](../notebooks/role3_gnn_elliptic_final.ipynb) (Colab, T4 GPU, about 10–15 min).
+Notebook: [`notebooks/role3_gnn_elliptic.ipynb`](../notebooks/role3_gnn_elliptic.ipynb) (Colab, T4 GPU, about 10–15 min). HPC re-run: [`hpc/`](../hpc).
 How this fits with the other roles: [PROJECT_PIPELINE.md](PROJECT_PIPELINE.md).
 
 ## Research question
@@ -74,30 +74,20 @@ The RF has 100 trees and `max_features=50`. It trains on all of 1–34 with thre
 - GNNs see 29 training time steps and the RF sees 34, which puts the GNNs at a small disadvantage.
 - GPU non-determinism means exact numbers can vary slightly between runs.
 - The features are anonymised, so the predictions cannot be explained in economic terms.
-- **The metrics were computed inside the notebook, not yet with the Role 4 evaluator.** See the next section.
 
-## Exported files and Role 4 evaluation
+## Re-run on the Bocconi HPC and Role 4 evaluation
 
-Section 10 of the notebook writes `role3_gnn_results.csv`, `role3_gnn_per_timestep.csv`, `role3_rf_embeddings_results.csv` and `role3_comparison_with_weber2019.csv`. These are summary tables, not the per-transaction score files that the [Role 4 evaluator](ROLE4_EVALUATION.md) needs.
+The tables above come from the saved Colab run. To score every run with the [Role 4 evaluator](ROLE4_EVALUATION.md), Sections 1–7 were re-run unchanged on one GPU slice of the Bocconi HPC. It took about 3 minutes; the scripts are in [`hpc/`](../hpc). The run exported a `txId, score_illicit` file for every model and seed. Section 10 of the notebook now contains the same export cell. Each GNN file was evaluated with its own frozen validation threshold, and the Random Forest at 0.50.
 
-To evaluate with Role 4, add this cell after Section 5 and re-run the notebook:
+| Model | Illicit F1 | Precision | Recall | AP | F1, steps 35–42 | F1, steps 43–49 |
+|---|---|---|---|---|---|---|
+| Random Forest, raw features | **0.817 ± 0.002** | **0.940** | 0.723 | **0.783 ± 0.002** | **0.906** | 0.031 |
+| GCN | 0.547 ± 0.029 | 0.685 | 0.456 | 0.532 ± 0.057 | 0.630 | 0.013 |
+| GraphSAGE | 0.534 ± 0.016 | 0.523 | 0.548 | 0.471 ± 0.034 | 0.615 | 0.017 |
+| MLP (no graph) | 0.503 ± 0.032 | 0.495 | 0.513 | 0.330 ± 0.042 | 0.586 | 0.020 |
+| GAT | 0.477 ± 0.045 | 0.506 | 0.459 | 0.446 ± 0.075 | 0.545 | 0.022 |
 
-```python
-from pathlib import Path
-out = Path("role4_predictions"); out.mkdir(exist_ok=True)
-# make_graph keeps df's node order, so these are the 16,670 labelled test IDs
-test_ids = df.loc[df["time_step"] >= TEST_START, "txId"].astype(str).values[test_g.labeled.cpu().numpy()]
-for (kind, s), m in trained.items():
-    p, _, _ = predict(m, test_g)
-    pd.DataFrame({"txId": test_ids, "score_illicit": p}).to_csv(out / f"{kind}_seed{s}_predictions.csv", index=False)
-res_df[["model", "seed", "threshold"]].to_csv(out / "thresholds.csv", index=False)
-```
-
-Then evaluate each file with its own validation threshold from `thresholds.csv`. The evaluator also uses `score >= threshold`:
-
-```bash
-python -m src.role4_evaluation --split-file tests/elliptic_split.csv --predictions role4_predictions/gcn_seed0_predictions.csv --model GCN --seed 0 --threshold <threshold> --outdir outputs/role4/gcn_seed0
-```
+These match the Colab run to within seed and GPU noise; for example GCN F1 is 0.547 here vs 0.558 in Colab. All 25 runs have the same `manifest_sha256` as the Role 2 runs. RF + GCN embeddings: F1 0.760 ± 0.007, AP 0.746 ± 0.004. The combined comparison and the explainability results are in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md).
 
 ## Next steps, most useful first
 
@@ -107,4 +97,3 @@ python -m src.role4_evaluation --split-file tests/elliptic_split.csv --predictio
 4. Compute out-of-fold GNN embeddings for the RF.
 5. Tune the class weights and the threshold.
 6. Try temporal GNNs such as EvolveGCN.
-7. Report F1 separately for steps 35–42 and 43–49, together with Role 4.
