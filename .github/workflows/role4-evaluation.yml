@@ -1,4 +1,4 @@
-name: Role 4 evaluation tests
+name: Tests
 
 on:
   push:
@@ -22,6 +22,6 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements-evaluation.txt
       - name: Run automated tests
-        run: python -m unittest discover -s tests -p 'test_role4*.py' -v
+        run: python -m unittest discover -s tests -p 'test_role*.py' -v
       - name: Run the simulated example
         run: python -m src.role4_evaluation --truth tests/fixtures/role4/simulated_test_manifest.csv --predictions tests/fixtures/role4/simulated_predictions.csv --model SIMULATED_DEMO --seed 0 --threshold 0.50 --outdir outputs/role4/simulated_demo
