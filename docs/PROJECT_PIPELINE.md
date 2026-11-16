@@ -19,7 +19,7 @@ Role 4  Evaluation  <--------------------------------------+  src/role4_evaluati
 | 1 – Data | Data card, shared split file (`txId, time_step, class, split`), script that rebuilds the split | [`data/Final Data Card.html`](../data/Final%20Data%20Card.html), [`tests/elliptic_split.csv`](../tests/elliptic_split.csv), [`src/role1_split.py`](../src/role1_split.py) | Done. The rebuilt file is byte-identical to the committed one |
 | 2 – Baselines | Logistic regression, Random Forest and XGBoost; RF + graph degree; final RF over 5 seeds | [`notebooks/role2_baseline_models.ipynb`](../notebooks/role2_baseline_models.ipynb), [results](ROLE2_BASELINE_RESULTS.md) | Done; evaluated with Role 4 |
 | 3 – GNNs | MLP, GCN, GraphSAGE and GAT; RF with and without GCN embeddings; 5 seeds | [`notebooks/role3_gnn_elliptic.ipynb`](../notebooks/role3_gnn_elliptic.ipynb), [`hpc/`](../hpc), [results](ROLE3_GNN_RESULTS.md) | Done; re-run on the Bocconi HPC and evaluated with Role 4 |
-| 4 – Evaluation | Evaluator, comparison tool, explanations, AML interpretation | [`src/`](../src), [`notebooks/role4_explainability.ipynb`](../notebooks/role4_explainability.ipynb), [results and interpretation](RESULTS_AND_INTERPRETATION.md) | Done, except the final report and slides |
+| 4 – Evaluation | Evaluator, comparison tool, explanations, AML interpretation, final report | [`src/`](../src), [`notebooks/role4_explainability.ipynb`](../notebooks/role4_explainability.ipynb), [results and interpretation](RESULTS_AND_INTERPRETATION.md), [`report/`](../report) | Done; report draft ready, slides still to do |
 
 ## The common thread
 
@@ -49,7 +49,7 @@ Full table and interpretation: [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTER
 
 ## Still open
 
-1. **Final report and slides** in the BSFS format, built from RESULTS_AND_INTERPRETATION.md.
+1. **Final report:** the draft in BSFS format is [`report/Graph_ML_Money_Laundering_Report.docx`](../report/Graph_ML_Money_Laundering_Report.docx), rebuilt by `report/build_report.py`. Still to do: fill in the highlighted `[TODO]` items (degree programmes, two optional AML paragraphs) and write the slides.
 2. **Optional experiments** suggested by the results:
    - GNNs retrained on 1–34.
    - Local features only.

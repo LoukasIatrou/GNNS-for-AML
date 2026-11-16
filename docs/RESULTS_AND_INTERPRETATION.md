@@ -28,12 +28,12 @@ This is the final comparison of every model the team trained, with explanations 
 
 | Model | AP | Illicit F1 | Precision | Recall | Alerts | False alarms | Missed illicit | F1 35–42 | F1 43–49 |
 |---|---|---|---|---|---|---|---|---|---|
-| Random Forest (Role 2) | **0.788 ± 0.002** | 0.752 ± 0.005 | 0.775 | **0.730** | 1,021 | 230 | 292 | 0.874 | 0.020 |
+| Random Forest (Role 2) | **0.788 ± 0.002** | 0.752 ± 0.005 | 0.775 | **0.730** | 1,020 | 230 | 292 | 0.874 | 0.020 |
 | Random Forest (Role 3) | 0.783 ± 0.002 | **0.817 ± 0.002** | **0.940** | 0.723 | 833 | **50** | 300 | **0.906** | 0.031 |
 | GCN | 0.532 ± 0.057 | 0.547 ± 0.029 | 0.685 | 0.456 | 721 | 228 | 590 | 0.630 | 0.013 |
 | GraphSAGE | 0.471 ± 0.034 | 0.534 ± 0.016 | 0.523 | 0.548 | 1,139 | 546 | 490 | 0.615 | 0.017 |
 | GAT | 0.446 ± 0.075 | 0.477 ± 0.045 | 0.506 | 0.459 | 997 | 500 | 586 | 0.545 | 0.022 |
-| MLP (no graph) | 0.330 ± 0.042 | 0.503 ± 0.032 | 0.495 | 0.513 | 1,132 | 576 | 527 | 0.586 | 0.020 |
+| MLP (no graph) | 0.330 ± 0.042 | 0.503 ± 0.032 | 0.495 | 0.513 | 1,131 | 576 | 527 | 0.586 | 0.020 |
 
 Alerts, false alarms and missed illicit are mean counts per run. "F1 35–42" and "F1 43–49" are pooled over those time steps. Per-run rows are in `runs.csv`.
 
@@ -84,7 +84,7 @@ Both views suggest that **the graph mainly helps during training.** Smoothing ov
 ## 6. What this means for AML
 
 - **A model is a triage tool, not a verdict.** Even the best model misses about 300 of 1,083 illicit transactions. More than half of those misses come after the shutdown. In Elliptic, "illicit" means the transaction belongs to a known illicit category (scams, malware, terrorist organisations, ransomware, Ponzi schemes), not proven laundering, and 77% of transactions have no label at all.
-- **Alert volume is the real constraint.** At comparable recall, about 0.72–0.73, the Role 3 Random Forest asks investigators to review 833 transactions, 94% of them correct. The Role 2 Random Forest asks for 1,021, 78% correct. The threshold should be chosen from review capacity on recent validation data and revisited as the data changes.
+- **Alert volume is the real constraint.** At comparable recall, about 0.72–0.73, the Role 3 Random Forest asks investigators to review 833 transactions, 94% of them correct. The Role 2 Random Forest asks for 1,020, 78% correct. The threshold should be chosen from review capacity on recent validation data and revisited as the data changes.
 - **Drift is the main operational risk.** One market closure was enough to make every model useless for the rest of the period. Any real use needs monitoring of score distributions and alert hit rates, plus regular retraining on newly labelled cases. Without them, performance can collapse silently.
 - **Graph models need to earn their complexity.** On this dataset, where neighbourhood aggregates are already in the features, plain GNNs add cost without beating trees. They are more likely to help where the raw features are not pre-aggregated, or with temporal or skip-connection architectures. Those were not tested here.
 

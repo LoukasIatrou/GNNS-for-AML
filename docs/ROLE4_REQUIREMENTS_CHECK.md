@@ -2,7 +2,7 @@
 
 ## Conclusion
 
-> **Update, 16 November 2026.** All 30 model runs (Roles 2 and 3, 5 seeds each) are now scored with the evaluator and combined with `src/role4_compare.py`. SHAP and GNNExplainer explanations have been run in `notebooks/role4_explainability.ipynb`. Results and the AML interpretation are in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md). Only the final report and slides in the BSFS format remain. The status column below reflects this update.
+> **Update, 16 November 2026.** All 30 model runs (Roles 2 and 3, 5 seeds each) are now scored with the evaluator and combined with `src/role4_compare.py`. SHAP and GNNExplainer explanations have been run in `notebooks/role4_explainability.ipynb`. Results and the AML interpretation are in [RESULTS_AND_INTERPRETATION.md](RESULTS_AND_INTERPRETATION.md). A draft of the final report in the BSFS format is in `report/`; the slides remain. The status column below reflects this update.
 
 The package met the upfront requirement to provide a shared evaluation script early, together with initial AML background and a plan for the final analysis.
 

@@ -24,6 +24,7 @@ class SAGE(torch.nn.Module):
         return self.out(x)
 counts = torch.bincount(train_g.y[train_g.labeled], minlength=2).float(); w = counts.sum() / (2 * counts)
 none = torch.empty(2, 0, dtype=torch.long)
+rows = []
 for cls in (GCN, SAGE):
     for seed in range(5):
         random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
@@ -41,5 +42,8 @@ for cls in (GCN, SAGE):
                 bad += 1
                 if bad >= 50: break
         m.load_state_dict(st); yt = test_g.y[test_g.labeled].numpy()
-        print(cls.__name__, seed, "AP with edges %.3f  without %.3f" % (average_precision_score(yt, sc(test_g, test_g.edge_index)), average_precision_score(yt, sc(test_g, none))), flush=True)
+        rows.append(dict(model=cls.__name__, seed=seed, ap_with_edges=average_precision_score(yt, sc(test_g, test_g.edge_index)),
+                         ap_without_edges=average_precision_score(yt, sc(test_g, none))))
+        print(cls.__name__, seed, "AP with edges %.3f  without %.3f" % (rows[-1]["ap_with_edges"], rows[-1]["ap_without_edges"]), flush=True)
+pd.DataFrame(rows).round(3).to_csv(REPO / "results" / "explainability" / "graph_ablation.csv", index=False)
 ''', ns)

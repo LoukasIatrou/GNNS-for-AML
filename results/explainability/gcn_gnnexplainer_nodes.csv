@@ -1,0 +1,6 @@
+txId,time_step,score,nodes in 3-hop subgraph,edges,edges with mask > 0.5,own-node share of feature mask,local share of own mask
+75078587,46,1.0,412,904,0,0.012,0.57
+31168385,40,1.0,387,1190,1,0.016,0.483
+12829644,38,1.0,4,6,2,0.36,0.513
+115949445,38,1.0,60,126,3,0.354,0.514
+73000845,42,0.999,49,102,8,0.054,0.496

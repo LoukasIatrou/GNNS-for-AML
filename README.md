@@ -37,7 +37,8 @@ How the roles feed into each other: [docs/PROJECT_PIPELINE.md](docs/PROJECT_PIPE
 ├── docs/        # Results, interpretation, pipeline overview, evaluation guide
 ├── hpc/         # SLURM scripts for the Role 3 re-run on the Bocconi HPC
 ├── notebooks/   # Role 2, Role 3 and Role 4 notebooks (Colab or local)
-├── results/     # Final comparison tables (all 30 runs)
+├── report/      # Final report (BSFS format), its build script and figures
+├── results/     # Final comparison and explainability tables
 ├── src/         # Split builder, evaluator, comparison tool
 └── tests/       # Shared split file, tests and fixtures
 ```
@@ -59,6 +60,7 @@ How the roles feed into each other: [docs/PROJECT_PIPELINE.md](docs/PROJECT_PIPE
    ```
 
    The prediction file format is described in [docs/ROLE4_EVALUATION.md](docs/ROLE4_EVALUATION.md).
+4. **Report:** `python report/make_figures.py` then `python report/build_report.py` rebuild [the final report](report/Graph_ML_Money_Laundering_Report.docx) from `results/`.
 
 ## Data and ethics
 
